@@ -158,6 +158,7 @@ namespace game_course
                         {
                             if (dataGridView1[i, j].Style.BackColor == Color.Empty)
                             {
+                                panel1.BackColor = pallete[1];
                                 colorful_cells(i, j, 0);
                                 poisen_cells(i, j);
                                 turn = true;
@@ -270,7 +271,7 @@ namespace game_course
             }
             if (countPlayers == 1)
             {
-
+                panel1.BackColor = pallete[0];
                 colorful_cells(j, i, 1);
                 turn = false;
                 machine_game();
@@ -282,7 +283,7 @@ namespace game_course
             {
                 if (play == 1)
                 {
-
+                    panel1.BackColor = pallete[0];
                     colorful_cells(j, i, 1);
                     total_paintCells();
                     course_game();
@@ -293,6 +294,7 @@ namespace game_course
 
                 else if (play == 2)
                 {
+                    panel1.BackColor = pallete[1];
                     colorful_cells(j, i, 0);
                     total_paintCells();
                     course_game();
@@ -307,6 +309,7 @@ namespace game_course
 
         private void button1_Click(object sender, EventArgs e)
         {
+            panel1.BackColor = Color.Empty;
             gameover = false;
             groupBox1.Show();
             clean_cells();

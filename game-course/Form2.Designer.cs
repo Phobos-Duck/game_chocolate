@@ -35,10 +35,10 @@
             groupBox1 = new GroupBox();
             button3 = new Button();
             groupBox2 = new GroupBox();
+            label3 = new Label();
+            label2 = new Label();
             checkedListBox3 = new CheckedListBox();
             checkedListBox2 = new CheckedListBox();
-            label2 = new Label();
-            label3 = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             SuspendLayout();
@@ -116,7 +116,25 @@
             groupBox2.Size = new Size(362, 244);
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
-            groupBox2.Text = "Цвета игроков";
+            groupBox2.Text = "Выберите цвета игроков";
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(233, 45);
+            label3.Name = "label3";
+            label3.Size = new Size(66, 20);
+            label3.TabIndex = 8;
+            label3.Text = "Игрок 2";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(37, 45);
+            label2.Name = "label2";
+            label2.Size = new Size(66, 20);
+            label2.TabIndex = 7;
+            label2.Text = "Игрок 1";
             // 
             // checkedListBox3
             // 
@@ -139,24 +157,6 @@
             checkedListBox2.TabIndex = 5;
             checkedListBox2.ItemCheck += checkedListBox2_ItemCheck;
             checkedListBox2.SelectedIndexChanged += checkedListBox2_SelectedIndexChanged;
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(37, 45);
-            label2.Name = "label2";
-            label2.Size = new Size(66, 20);
-            label2.TabIndex = 7;
-            label2.Text = "Игрок 1";
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Location = new Point(233, 45);
-            label3.Name = "label3";
-            label3.Size = new Size(66, 20);
-            label3.TabIndex = 8;
-            label3.Text = "Игрок 2";
             // 
             // Form2
             // 

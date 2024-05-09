@@ -36,6 +36,7 @@
             button3 = new Button();
             label2 = new Label();
             groupBox1 = new GroupBox();
+            panel1 = new Panel();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
             SuspendLayout();
@@ -124,17 +125,25 @@
             // groupBox1
             // 
             groupBox1.Controls.Add(label2);
-            groupBox1.Location = new Point(31, 0);
+            groupBox1.Location = new Point(31, -1);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(274, 47);
+            groupBox1.Size = new Size(274, 43);
             groupBox1.TabIndex = 7;
             groupBox1.TabStop = false;
+            // 
+            // panel1
+            // 
+            panel1.Location = new Point(360, 27);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(54, 29);
+            panel1.TabIndex = 6;
             // 
             // Form4
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(619, 450);
+            Controls.Add(panel1);
             Controls.Add(groupBox1);
             Controls.Add(listBox1);
             Controls.Add(button3);
@@ -161,5 +170,6 @@
         private ListBox listBox1;
         private Label label2;
         private GroupBox groupBox1;
+        private Panel panel1;
     }
 }
