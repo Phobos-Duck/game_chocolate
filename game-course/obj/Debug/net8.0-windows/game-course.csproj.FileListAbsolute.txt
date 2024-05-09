@@ -18,3 +18,4 @@ C:\Users\Отравленная Ириска\source\repos\game-course\game-cours
 C:\Users\Отравленная Ириска\source\repos\game-course\game-course\obj\Debug\net8.0-windows\game-course.genruntimeconfig.cache
 C:\Users\Отравленная Ириска\source\repos\game-course\game-course\obj\Debug\net8.0-windows\ref\game-course.dll
 C:\Users\Отравленная Ириска\source\repos\game-course\game-course\obj\Debug\net8.0-windows\game_course.Properties.Resources.resources
+C:\Users\Отравленная Ириска\source\repos\game-course\game-course\obj\Debug\net8.0-windows\game-course.sourcelink.json

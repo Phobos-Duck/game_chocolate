@@ -108,11 +108,11 @@ namespace game_course
                     gameover = true;
                     if (countPlayers == 1)
                     {
-                        MessageBox.Show("Game Over! Я програл((");
+                        MessageBox.Show("Game Over! Я отравился((");
                     }
                     else
                     {
-                        MessageBox.Show("Проиграл второй игрок!");
+                        MessageBox.Show("Отравился второй игрок!");
                     }
 
                 }
@@ -122,11 +122,11 @@ namespace game_course
                     gameover = true;
                     if (countPlayers == 1)
                     {
-                        MessageBox.Show("Game Over! Вы програли((");
+                        MessageBox.Show("Game Over! Вы отравились((");
                     }
                     else
                     {
-                        MessageBox.Show("Проиграл первый игрок!");
+                        MessageBox.Show("Отравился первый игрок!");
                     }
 
                 }
@@ -144,9 +144,6 @@ namespace game_course
         {
             if (!turn)
             {
-                // Реализация выигрышной стратегии Ним:
-                // Компьютер выбирает количество клеток в каждой строке таким образом,
-                // чтобы их сумма по столбцам была равна нулю (если возможно).
                 for (int i = 0; i < cols; i++)
                 {
                     int sum = 0;
@@ -170,7 +167,6 @@ namespace game_course
                     }
                 }
 
-                // Если нет возможности сделать ход по стратегии Ним, выбираем случайный ход.
                 int x, y;
                 do
                 {
