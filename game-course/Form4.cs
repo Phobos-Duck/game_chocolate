@@ -19,10 +19,10 @@ namespace game_course
         List<int> xCol = new List<int>();
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
-        int rows = 12, cols = 6, j0 = -1, i0 = -1, c = 1, m1, m2, play = 1, total_1 = 0, total_2 = 0;
+        int rows = 12, cols = 6, j0 = -1, i0 = -1, c = 1, play = 1, total_1 = 0, total_2 = 0;
         bool gameover = false, turn = false;
 
-        private int countPlayers;
+        int countPlayers;
 
 
         public Form4(int number, Color color_1, Color color_2)
