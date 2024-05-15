@@ -73,11 +73,11 @@ namespace game_course
             {
                 foreach (DataGridViewCell cell in row.Cells)
                 {
-                    if (cell.Style.BackColor == pallete[1])
+                    if (cell.Style.BackColor == pallete[0])
                     {
                         total_1++;
                     }
-                    else if (cell.Style.BackColor == pallete[0])
+                    else if (cell.Style.BackColor == pallete[1])
                     {
                         total_2++;
                     }
@@ -112,8 +112,22 @@ namespace game_course
                     if (i == i0 && j == j0)
                     {
                         gameover = true;
-                        MessageBox.Show($"Game Over! Выиграл {(turn ? "игрок"  : "компьютер")}");
-                        return;
+                        if (countPlayers == 1)
+                        {
+                            MessageBox.Show($"Game Over! Выиграл {(turn ? "игрок" : "компьютер")}");
+                            return;
+                        }
+                        else
+                        {
+                            if (play == 1)
+                            {
+                                MessageBox.Show("Game Over! Выиграл второй игрок");
+                            }
+                            else if (play == 2)
+                            {
+                                MessageBox.Show("Game Over! Выиграл первый игрок");
+                            }
+                        }
                     }
                 }
             }
@@ -400,31 +414,34 @@ namespace game_course
                         turn = true;
                         machine_game();
                         poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+                        total_paintCells();
+                        course_game();
                     }
                     else
                     {
                         if (play == 1)
                         {
-                            play = 2;
                             colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
                             poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+                            total_paintCells();
+                            course_game();
                             panel1.BackColor = pallete[1];
+                            play = 2;
                         }
                         else
                         {
-                            play = 1;
                             colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 1);
                             poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+                            total_paintCells();
+                            course_game();
                             panel1.BackColor = pallete[0];
+                            play = 1;
                         }
                     }
                 }
 
                 xCol.Clear();
                 yRow.Clear();
-
-                total_paintCells();
-                course_game();
                 panel1.BackColor = pallete[(countPlayers == 1) ? 0 : 1];
 
             }
