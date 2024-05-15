@@ -19,10 +19,11 @@ namespace game_course
         List<int> xCol = new List<int>();
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
-        int rows = 12, cols = 6, j0 = 0, i0 = 0, c = 1, m1, m2, play = 1, total_1 = 0, total_2 = 0;
+        int rows = 12, cols = 6, j0 = -1, i0 = -1, c = 1, m1, m2, play = 1, total_1 = 0, total_2 = 0;
         bool gameover = false;
 
         private int countPlayers;
+
 
         public Form4(int number, Color color_1, Color color_2)
         {
@@ -33,6 +34,11 @@ namespace game_course
 
             dataGridView1.RowCount = rows;
             dataGridView1.ColumnCount = cols;
+            if (c == 1)
+            {
+                random_cells();
+                c = 0;
+            }
             for (int j = 0; j < rows; j++)
             {
                 dataGridView1.Rows[j].Height = 30;  // Устанавливаем меньшую высоту для строк
@@ -40,11 +46,6 @@ namespace game_course
             for (int i = 0; i < cols; i++)
             {
                 dataGridView1.Columns[i].Width = 43;  // Ширина столбцов
-            }
-            if (c == 1)
-            {
-                random_cells();
-                c = 0;
             }
         }
         void course_game()
@@ -121,6 +122,11 @@ namespace game_course
                     }
                 }
             }
+            if ((endY - startY == 0 && j0 >= startY && j0 <= endY) || (endX - startX == 0 && i0 >= startX && i0 <= endX))
+            {
+                gameover = true;
+                MessageBox.Show($"Game Over!");
+            }
         }
         private void random_cells()
         {
@@ -131,72 +137,101 @@ namespace game_course
 
 
         }
+        private List<Tuple<int, int, int, int>> FindAvailableCombinations(int minX, int maxX, int minY, int maxY)
+        {
+            List<Tuple<int, int, int, int>> availableCombinations = new List<Tuple<int, int, int, int>>();
+
+            // Проверяем, что текущая область содержит несколько строк
+            if (maxY - minY > 0)
+            {
+                availableCombinations.Add(Tuple.Create(minX, minY, maxX, maxY));
+            }
+
+            // Проверяем, что текущая область содержит несколько столбцов
+            if (maxX - minX > 0)
+            {
+                availableCombinations.Add(Tuple.Create(minX, minY, maxX, maxY));
+            }
+
+            for (int i = minX; i <= maxX; i++)
+            {
+                for (int j = minY; j <= maxY; j++)
+                {
+                    if ((i != i0 || j != j0) && (i == minX || i == maxX || j == minY || j == maxY))
+                    {
+                        bool validRow = true;
+                        bool validColumn = true;
+
+                        // Проверяем, что включенные клетки образуют целую строку или столбец
+                        for (int k = minX; k <= maxX; k++)
+                        {
+                            if (dataGridView1[k, j].Style.BackColor != Color.Empty)
+                            {
+                                validRow = false;
+                                break;
+                            }
+                        }
+
+                        for (int k = minY; k <= maxY; k++)
+                        {
+                            if (dataGridView1[i, k].Style.BackColor != Color.Empty)
+                            {
+                                validColumn = false;
+                                break;
+                            }
+                        }
+
+                        if (validRow || validColumn)
+                        {
+                            // Проверяем, что обе координаты выбранной клетки затрагивают текущие края
+                            if ((i == minX || i == maxX) && (j == minY || j == maxY))
+                            {
+                                // Если выбрана строка, то добавляем все столбцы до конца
+                                if (validRow)
+                                {
+                                    availableCombinations.Add(Tuple.Create(minX, j, maxX, j));
+                                }
+
+                                // Если выбран столбец, то добавляем все строки до конца
+                                if (validColumn)
+                                {
+                                    availableCombinations.Add(Tuple.Create(i, minY, i, maxY));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return availableCombinations;
+        }
 
         private void machine_game()
         {
             int minX, maxX, minY, maxY;
 
-            // Получаем координаты первой пустой клетки на границе
-            if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
-            {
-                return; // Если не найдено пустых клеток на границе, просто завершаем функцию
-            }
+            // Получаем координаты крайних пустых клеток
+            TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY);
 
-            // Если координаты отравленной дольки заданы
-            if (i0 != -1 && j0 != -1)
-            {
-                // Определяем, в каком направлении находится отравленная долька
-                bool isHorizontal = (i0 == minY || i0 == maxY);
-                bool isVertical = (j0 == minX || j0 == maxX);
+            // Проверяем положение отравленной дольки относительно выбранной области
+            bool poisonInside = (i0 >= minX && i0 <= maxX && j0 >= minY && j0 <= maxY);
+            bool poisonOnEdge = (i0 == minX || i0 == maxX || j0 == minY || j0 == maxY);
 
-                // Если отравленная долька лежит на краю поля, выбираем направление от нее
-                if ((isHorizontal && minY == 0) || (isVertical && minX == 0))
-                {
-                    // Если отравленная долька находится на верхней или левой границе,
-                    // закрашиваем вниз или вправо соответственно
-                    if (isHorizontal)
-                    {
-                        colorful_cells(minX, minY, maxX, maxY, 1); // Закрасить вниз
-                    }
-                    else if (isVertical)
-                    {
-                        colorful_cells(minX, minY, maxX, maxY, 1); // Закрасить вправо
-                    }
-                }
-                else
-                {
-                    // Иначе закрашиваем в противоположном направлении от отравленной дольки
-                    if (isHorizontal)
-                    {
-                        // Если верхняя часть свободна, закрасить вверх, иначе закрасить вниз
-                        int topY = Math.Max(0, minY - 1);
-                        int bottomY = Math.Min(dataGridView1.RowCount - 1, maxY + 1);
-                        colorful_cells(minX, topY, maxX, topY, 1);
-                        colorful_cells(minX, bottomY, maxX, bottomY, 1);
-                    }
-                    else if (isVertical)
-                    {
-                        // Если левая часть свободна, закрасить влево, иначе закрасить вправо
-                        int leftX = Math.Max(0, minX - 1);
-                        int rightX = Math.Min(dataGridView1.ColumnCount - 1, maxX + 1);
-                        colorful_cells(leftX, minY, leftX, maxY, 1);
-                        colorful_cells(rightX, minY, rightX, maxY, 1);
-                    }
-                }
+            // Создаем список доступных комбинаций клеток
+            List<Tuple<int, int, int, int>> availableCombinations = FindAvailableCombinations(minX, maxX, minY, maxY);
+
+            // Если список доступных комбинаций не пустой, выбираем случайную комбинацию и закрашиваем ее
+            if (availableCombinations.Count > 0)
+            {
+                Random rnd = new Random();
+                int randomIndex = rnd.Next(availableCombinations.Count);
+                var combination = availableCombinations[randomIndex];
+                colorful_cells(combination.Item1, combination.Item2, combination.Item3, combination.Item4, 1);
             }
             else
             {
-                // Если координаты отравленной дольки не заданы, просто закрашиваем по стандартной стратегии
-                if (maxY - minY > maxX - minX)
-                {
-                    // Если высота больше ширины, закрасить всю строку
-                    colorful_cells(minX, minY, maxX, minY, 1);
-                }
-                else
-                {
-                    // Если ширина больше или равна высоте, закрасить весь столбец
-                    colorful_cells(minX, minY, minX, maxY, 1);
-                }
+                // Если не удалось найти доступные комбинации, закрашиваем всю область, кроме отравленной дольки
+                colorful_cells(minX, minY, maxX, maxY, 1);
             }
         }
 
@@ -221,7 +256,7 @@ namespace game_course
                     }
                     else
                     {
-                        if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[0])
+                        if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[0] )
                         {
                             dataGridView1[x, y].Style.BackColor = pallete[step];
                         }
@@ -280,6 +315,7 @@ namespace game_course
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+
             groupBox1.Hide();
             if (gameover)
             {
@@ -356,6 +392,11 @@ namespace game_course
             gameover = false;
             groupBox1.Show();
             clean_cells();
+            if (c == 1)
+            {
+                random_cells();
+                c = 0;
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)
