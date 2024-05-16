@@ -19,7 +19,7 @@ namespace game_course
         List<int> xCol = new List<int>();
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
-        int rows = 12, cols = 6, j0 = -1, i0 = -1, c = 0, play = 1, total_1 = 0, total_2 = 0;
+        int rows = 12, cols = 6, j0 = -1, i0 = -1, play = 1, total_1 = 0, total_2 = 0;
         bool gameover = false, turn = false;
 
         int countPlayers;
@@ -95,7 +95,6 @@ namespace game_course
                 for (int j = 0; j < rows; j++)
                 {
                     dataGridView1[i, j].Style.BackColor = Color.Empty;
-                    c = 1;
 
                 }
             }
@@ -115,7 +114,7 @@ namespace game_course
             // Проверяем, содержит ли закрашенная область отравленную дольку
             if ((xCol[0] == xCol[1] && Math.Abs(yRow[0] - yRow[1]) <= 1) ||
                 (yRow[0] == yRow[1] && Math.Abs(xCol[0] - xCol[1]) <= 1) ||
-                (i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) || (i0 == x1  && j0 == y1) || (i0 == x2 && j0 == y2))
+                (i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) || (i0 == x1  && j0 == y1) && (i0 == x2 || j0 == y2))
             {
                 hasPoisonedCell = true;
             }
@@ -224,30 +223,6 @@ namespace game_course
                 return;
             }
 
-
-            // Проверяем, остается ли хотя бы одна пустая клетка вне текущей области
-            bool hasEmptyCell = false;
-            for (int i = 0; i < dataGridView1.ColumnCount; i++)
-            {
-                for (int j = 0; j < dataGridView1.RowCount; j++)
-                {
-                    if (dataGridView1[i, j].Style.BackColor == Color.Empty)
-                    {
-                        hasEmptyCell = true;
-                        break;
-                    }
-                }
-                if (hasEmptyCell)
-                {
-                    break;
-                }
-            }
-
-            if (!hasEmptyCell)
-            {
-                turn = false;
-                return;
-            }
 
             // Создаем список доступных комбинаций клеток
             List<Tuple<int, int, int, int>> availableCombinations = FindAvailableCombinations(minX, maxX, minY, maxY);
@@ -391,80 +366,99 @@ namespace game_course
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-
             groupBox1.Hide();
             if (gameover)
             {
                 return;
             }
+
             int x = e.ColumnIndex;
             int y = e.RowIndex;
-            xCol.Add(x);
-            yRow.Add(y);
-            dataGridView1[x, y].Style.BackColor = panel1.BackColor;
-            if (xCol.Count == 2 && yRow.Count == 2)
+
+            // Добавляем координаты только в случае, если выбрана пустая клетка
+            if (dataGridView1[x, y].Style.BackColor == Color.Empty)
             {
+                xCol.Add(x);
+                yRow.Add(y);
+                dataGridView1[x, y].Style.BackColor = panel1.BackColor;
 
-                int minX, maxX, minY, maxY;
-                if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
+                // Проверяем, выбраны ли уже две клетки
+                if (xCol.Count == 2 && yRow.Count == 2)
                 {
-                    xCol.Clear();
-                    yRow.Clear();
-                    return;
-                }
-                else
-                {
-                    bool isValidSelection = ((xCol.Min() == minX || xCol.Max() == maxX) && (yRow.Min() == minY && yRow.Max() == maxY)) ||
-                        ((yRow.Min() == minY || yRow.Max() == maxY) && (xCol.Min() == minX && xCol.Max() == maxX));
-
-                    if (!isValidSelection)
+                    int minX, maxX, minY, maxY;
+                    if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
                     {
-                        MessageBox.Show("Выберите строки или столбцы, начинающиеся и заканчивающиеся на краях шоколадки и еще не закрашенные!");
+                        // Если не удалось найти крайние пустые клетки, отменяем выбор и очищаем списки координат
+                        dataGridView1[xCol[0], yRow[0]].Style.BackColor = Color.Empty;
+                        dataGridView1[xCol[1], yRow[1]].Style.BackColor = Color.Empty;
                         xCol.Clear();
                         yRow.Clear();
                         return;
                     }
-
-                    if (countPlayers == 1)
-                    {
-                        colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
-                        poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
-                        if (!gameover)
-                        {
-                            machine_game();
-                        }
-                        turn = true;
-                        total_paintCells();
-                        course_game();
-
-                    }
                     else
                     {
-                        if (play == 1)
+                        bool isValidSelection = ((xCol.Min() == minX || xCol.Max() == maxX) && (yRow.Min() == minY && yRow.Max() == maxY)) ||
+                                                ((yRow.Min() == minY || yRow.Max() == maxY) && (xCol.Min() == minX && xCol.Max() == maxX));
+
+                        if (!isValidSelection)
                         {
-                            panel1.BackColor = pallete[1];
+                            // Если выбор не корректный, выводим сообщение и отменяем его
+                            MessageBox.Show("Выберите строки или столбцы, начинающиеся и заканчивающиеся на краях шоколадки и еще не закрашенные!");
+                            dataGridView1[xCol[0], yRow[0]].Style.BackColor = Color.Empty;
+                            dataGridView1[xCol[1], yRow[1]].Style.BackColor = Color.Empty;
+                            xCol.Clear();
+                            yRow.Clear();
+                            return;
+                        }
+
+                        if (countPlayers == 1)
+                        {
                             colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
+                            poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+                            if (!gameover)
+                            {
+                                machine_game();
+                            }
+                            turn = true;
                             total_paintCells();
                             course_game();
-                            
-                            play = 2;
+
                         }
                         else
                         {
-                            panel1.BackColor = pallete[0];
-                            colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 1);
-                            total_paintCells();
-                            course_game();
-                            play = 1;
-                        }
-                        poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
-                    }
-                    xCol.Clear();
-                    yRow.Clear();
-                }
+                            if (play == 1)
+                            {
+                                panel1.BackColor = pallete[1];
+                                colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
+                                total_paintCells();
+                                course_game();
 
+                                play = 2;
+                            }
+                            else
+                            {
+                                panel1.BackColor = pallete[0];
+                                colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 1);
+                                total_paintCells();
+                                course_game();
+                                play = 1;
+                            }
+                            poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+                        }
+                        xCol.Clear();
+                        yRow.Clear();
+                    }
+                }
             }
+            else
+            {
+                // Если выбранная клетка уже закрашена, сбрасываем выбор
+                xCol.Clear();
+                yRow.Clear();
+            }
+
         }
+
         private void button1_Click(object sender, EventArgs e)
         {
             panel1.BackColor = Color.Empty;
