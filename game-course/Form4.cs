@@ -20,7 +20,7 @@ namespace game_course
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
         int rows = 12, cols = 6, j0 = -1, i0 = -1, play = 1, total_1 = 0, total_2 = 0;
-        bool gameover = false, turn = true;
+        bool gameover = false;
 
         int countPlayers;
 
@@ -113,8 +113,9 @@ namespace game_course
 
             // Проверяем, содержит ли закрашенная область отравленную дольку
             if ((xCol[0] == xCol[1] && Math.Abs(yRow[0] - yRow[1]) <= 1) ||
-                (yRow[0] == yRow[1] && Math.Abs(xCol[0] - xCol[1]) <= 1) ||
-                (i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) || (i0 == x1  && j0 == y1) && (i0 == x2 || j0 == y2))
+    (yRow[0] == yRow[1] && Math.Abs(xCol[0] - xCol[1]) <= 1) ||
+    (i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) ||
+    (i0 == x1 && j0 == y1) || (i0 == x2 && j0 == y2))
             {
                 hasPoisonedCell = true;
             }
@@ -124,7 +125,7 @@ namespace game_course
                 gameover = true;
                 if (countPlayers == 1)
                 {
-                    MessageBox.Show($"Game Over! Выиграл {(!turn ? "компьютер" : "игрок")}");
+                    MessageBox.Show($"Game Over! Выиграл {(panel1.BackColor == pallete[1] ? "компьютер" : "игрок")}");
                 }
                 else
                 {
@@ -298,18 +299,18 @@ namespace game_course
                     {
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[1] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
-                            dataGridView1[x, y].Style.BackColor = pallete[step];
-                            turn = true;
                             panel1.BackColor = pallete[1];
+                            dataGridView1[x, y].Style.BackColor = pallete[step];
+                            
                         }
                     }
                     else
                     {
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[0] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
+                            
                             dataGridView1[x, y].Style.BackColor = pallete[step];
-                            turn = false;
-                            panel1.BackColor = pallete[0];
+                            
                         }
                     }
                 }
@@ -376,11 +377,8 @@ namespace game_course
             int y = e.RowIndex;
 
             // Добавляем координаты только в случае, если выбрана пустая клетка
-            if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor == Color.Red)
-            {
                 xCol.Add(x);
                 yRow.Add(y);
-                dataGridView1[x, y].Style.BackColor = panel1.BackColor;
 
                 // Проверяем, выбраны ли уже две клетки
                 if (xCol.Count == 2 && yRow.Count == 2)
@@ -395,15 +393,13 @@ namespace game_course
                     else
                     {
                         bool isValidSelection = ((xCol.Min() == minX || xCol.Max() == maxX) && (yRow.Min() == minY && yRow.Max() == maxY)) ||
-                        ((yRow.Min() == minY || yRow.Max() == maxY) && (xCol.Min() == minX && xCol.Max() == maxX)) ||
-                        ((maxX - minX <= 2) && (maxY - minY <= 2));
+                         ((yRow.Min() == minY || yRow.Max() == maxY) && (xCol.Min() == minX && xCol.Max() == maxX)) ||
+                         ((maxX - minX <= 2 && maxX - minX >= 0) && (maxY - minY <= 2 && maxY - minY >= 0));
 
                         if (!isValidSelection)
                         {
                             // Если выбор не корректный, выводим сообщение и отменяем его
                             MessageBox.Show("Выберите строки или столбцы, начинающиеся и заканчивающиеся на краях шоколадки и еще не закрашенные!");
-                            dataGridView1[xCol[0], yRow[0]].Style.BackColor = Color.Empty;
-                            dataGridView1[xCol[1], yRow[1]].Style.BackColor = Color.Empty;
                             xCol.Clear();
                             yRow.Clear();
                             return;
@@ -416,7 +412,7 @@ namespace game_course
                             if (!gameover)
                             {
                                 machine_game();
-                                turn = false;
+
                             }
                             total_paintCells();
                             course_game();
@@ -447,13 +443,6 @@ namespace game_course
                         yRow.Clear();
                     }
                 }
-            }
-            else
-            {
-                // Если выбранная клетка уже закрашена, сбрасываем выбор
-                xCol.Clear();
-                yRow.Clear();
-            }
 
         }
 
