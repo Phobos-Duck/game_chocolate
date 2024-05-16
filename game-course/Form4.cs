@@ -19,7 +19,7 @@ namespace game_course
         List<int> xCol = new List<int>();
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
-        int rows = 12, cols = 6, j0 = -1, i0 = -1, c = 1, play = 1, total_1 = 0, total_2 = 0;
+        int rows = 12, cols = 6, j0 = -1, i0 = -1, c = 0, play = 1, total_1 = 0, total_2 = 0;
         bool gameover = false, turn = false;
 
         int countPlayers;
@@ -43,6 +43,7 @@ namespace game_course
             {
                 dataGridView1.Columns[i].Width = 43;  // Ширина столбцов
             }
+            panel1.BackColor = pallete[0];
             random_cells();
 
         }
@@ -64,8 +65,8 @@ namespace game_course
             {
                 if (countPlayers == 1)
                 {
-                    listBox1.Items.Add("Ваш ход: " + total_2 + "\r\n");
-                    listBox1.Items.Add("Ход компьютера: " + total_1 + "\r\n");
+                    listBox1.Items.Add("Ваш ход: " + total_1 + "\r\n");
+                    listBox1.Items.Add("Ход компьютера: " + total_2 + "\r\n");
                 }
             }
         }
@@ -100,6 +101,8 @@ namespace game_course
             }
             listBox1.Items.Clear();
         }
+
+
         private void poisen_cells(int x1, int y1, int x2, int y2)
         {
             int startX = Math.Min(x1, x2);
@@ -107,30 +110,28 @@ namespace game_course
             int startY = Math.Min(y1, y2);
             int endY = Math.Max(y1, y2);
 
+            bool hasPoisonedCell = false;
+
             // Проверяем, содержит ли закрашенная область отравленную дольку
-            for (int i = startX; i <= endX; i++)
+            if ((xCol[0] == xCol[1] && Math.Abs(yRow[0] - yRow[1]) <= 1) ||
+                (yRow[0] == yRow[1] && Math.Abs(xCol[0] - xCol[1]) <= 1) ||
+                (i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) || (i0 == x1  && j0 == y1) || (i0 == x2 && j0 == y2))
             {
-                for (int j = startY; j <= endY; j++)
+                hasPoisonedCell = true;
+            }
+
+            if (hasPoisonedCell)
+            {
+                gameover = true;
+                if (countPlayers == 1)
                 {
-                    if (i == i0 && j == j0)
+                    MessageBox.Show($"Game Over! Выиграл {(turn ? "компьютер" : "игрок")}");
+                }
+                else
+                {
+                    if (play == 1)
                     {
-                        gameover = true;
-                        if (countPlayers == 1)
-                        {
-                            MessageBox.Show($"Game Over! Выиграл {(turn ? "игрок" : "компьютер")}");
-                            return;
-                        }
-                        else
-                        {
-                            if (play == 1)
-                            {
-                                MessageBox.Show("Game Over! Выиграл второй игрок");
-                            }
-                            else if (play == 2)
-                            {
-                                MessageBox.Show("Game Over! Выиграл первый игрок");
-                            }
-                        }
+                        MessageBox.Show($"Game Over! Выиграл {(play == 1 ? "первый" : "второй")} игрок");
                     }
                 }
             }
@@ -213,16 +214,6 @@ namespace game_course
             return availableCombinations;
         }
 
-        private int GetCombinationCellCount(Tuple<int, int, int, int> combination)
-        {
-            int startX = Math.Min(combination.Item1, combination.Item3);
-            int endX = Math.Max(combination.Item1, combination.Item3);
-            int startY = Math.Min(combination.Item2, combination.Item4);
-            int endY = Math.Max(combination.Item2, combination.Item4);
-
-            return (endX - startX + 1) * (endY - startY + 1);
-        }
-
         private void machine_game()
         {
             int minX, maxX, minY, maxY;
@@ -232,6 +223,7 @@ namespace game_course
             {
                 return;
             }
+
 
             // Проверяем, остается ли хотя бы одна пустая клетка вне текущей области
             bool hasEmptyCell = false;
@@ -253,38 +245,69 @@ namespace game_course
 
             if (!hasEmptyCell)
             {
-                turn = true;
+                turn = false;
                 return;
             }
 
             // Создаем список доступных комбинаций клеток
             List<Tuple<int, int, int, int>> availableCombinations = FindAvailableCombinations(minX, maxX, minY, maxY);
 
-            // Если список доступных комбинаций не пустой, выбираем случайную комбинацию и закрашиваем ее
+            // Если список доступных комбинаций не пустой, выбираем комбинацию с наименьшим количеством вариантов хода игрока
             if (availableCombinations.Count > 0)
             {
-                Random rnd = new Random();
-                var filteredCombinations = availableCombinations.Where(combination => GetCombinationCellCount(combination) <= 24).ToList();
-                if (filteredCombinations.Count > 0)
+                Tuple<int, int, int, int> bestCombination = availableCombinations[0];
+                int minPlayerOptions = int.MaxValue;
+
+                foreach (var combination in availableCombinations)
                 {
-                    int randomIndex = rnd.Next(filteredCombinations.Count);
-                    var combination = filteredCombinations[randomIndex];
-                    colorful_cells(combination.Item1, combination.Item2, combination.Item3, combination.Item4, 1);
-                    poisen_cells(combination.Item1, combination.Item2, combination.Item3, combination.Item4);
-                    turn = false;
+                    int playerOptions = CountPlayerOptions(combination.Item1, combination.Item2, combination.Item3, combination.Item4);
+                    if (playerOptions < minPlayerOptions)
+                    {
+                        minPlayerOptions = playerOptions;
+                        bestCombination = combination;
+                    }
                 }
+
+                colorful_cells(bestCombination.Item1, bestCombination.Item2, bestCombination.Item3, bestCombination.Item4, 1);
+                poisen_cells(bestCombination.Item1, bestCombination.Item2, bestCombination.Item3, bestCombination.Item4);
+                turn = false;
             }
             else
             {
                 // Если не удалось найти доступные комбинации, закрашиваем всю область, кроме отравленной дольки
                 colorful_cells(minX, minY, maxX, maxY, 1);
-                poisen_cells(minX, minY, maxX, maxY);
                 turn = false;
             }
 
-
-
         }
+
+        private int CountPlayerOptions(int minX, int minY, int maxX, int maxY)
+        {
+            int count = 0;
+
+            for (int i = minX; i <= maxX; i++)
+            {
+                for (int j = minY; j <= maxY; j++)
+                {
+                    if ((i != i0 || j != j0) && (i == minX || i == maxX || j == minY || j == maxY))
+                    {
+                        if (IsPlayerMoveOption(i, j))
+                        {
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private bool IsPlayerMoveOption(int x, int y)
+        {
+            return x >= 0 && x < cols && y >= 0 && y < rows &&
+                   (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor == pallete[0]);
+        }
+
 
 
         private void colorful_cells(int j1, int i1, int j2, int i2, int step)
@@ -303,6 +326,7 @@ namespace game_course
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[1] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
                             dataGridView1[x, y].Style.BackColor = pallete[step];
+                            panel1.BackColor = pallete[1];
                         }
                     }
                     else
@@ -310,6 +334,7 @@ namespace game_course
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[0] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
                             dataGridView1[x, y].Style.BackColor = pallete[step];
+                            panel1.BackColor = pallete[0];
                         }
                     }
                 }
@@ -327,7 +352,7 @@ namespace game_course
                 bool isEmpty = false;
                 for (int i = 0; i < cols; i++)
                 {
-                    if (dataGridView1[i, j].Style.BackColor == Color.Empty)
+                    if (dataGridView1[i, j].Style.BackColor == Color.Empty || dataGridView1[i, j].Style.BackColor == Color.Red)
                     {
                         isEmpty = true;
                         break;
@@ -347,7 +372,7 @@ namespace game_course
                 bool isEmpty = false;
                 for (int j = 0; j < rows; j++)
                 {
-                    if (dataGridView1[i, j].Style.BackColor == Color.Empty)
+                    if (dataGridView1[i, j].Style.BackColor == Color.Empty || dataGridView1[i, j].Style.BackColor == Color.Red)
                     {
                         isEmpty = true;
                         break;
@@ -372,22 +397,14 @@ namespace game_course
             {
                 return;
             }
-
             int x = e.ColumnIndex;
             int y = e.RowIndex;
-
             xCol.Add(x);
             yRow.Add(y);
-
+            dataGridView1[x, y].Style.BackColor = panel1.BackColor;
             if (xCol.Count == 2 && yRow.Count == 2)
             {
-                if (xCol[0] == xCol[1] && yRow[0] == yRow[1])
-                {
-                    MessageBox.Show("Выберите как минимум две разные ячейки!");
-                    xCol.Clear();
-                    yRow.Clear();
-                    return;
-                }
+
                 int minX, maxX, minY, maxY;
                 if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
                 {
@@ -411,44 +428,46 @@ namespace game_course
                     if (countPlayers == 1)
                     {
                         colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
-                        turn = true;
-                        machine_game();
                         poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+                        if (!gameover)
+                        {
+                            machine_game();
+                        }
+                        turn = true;
                         total_paintCells();
                         course_game();
+
                     }
                     else
                     {
                         if (play == 1)
                         {
+                            panel1.BackColor = pallete[1];
                             colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
-                            poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
                             total_paintCells();
                             course_game();
-                            panel1.BackColor = pallete[1];
+                            
                             play = 2;
                         }
                         else
                         {
+                            panel1.BackColor = pallete[0];
                             colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 1);
-                            poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
                             total_paintCells();
                             course_game();
-                            panel1.BackColor = pallete[0];
                             play = 1;
                         }
+                        poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
                     }
+                    xCol.Clear();
+                    yRow.Clear();
                 }
-
-                xCol.Clear();
-                yRow.Clear();
-                panel1.BackColor = pallete[(countPlayers == 1) ? 0 : 1];
 
             }
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            panel1.BackColor = Color.Empty; 
+            panel1.BackColor = Color.Empty;
             gameover = false;
             groupBox1.Show();
             clean_cells();
