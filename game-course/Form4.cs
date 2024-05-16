@@ -20,7 +20,7 @@ namespace game_course
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
         int rows = 12, cols = 6, j0 = -1, i0 = -1, play = 1, total_1 = 0, total_2 = 0;
-        bool gameover = false, turn = false;
+        bool gameover = false, turn = true;
 
         int countPlayers;
 
@@ -124,7 +124,7 @@ namespace game_course
                 gameover = true;
                 if (countPlayers == 1)
                 {
-                    MessageBox.Show($"Game Over! Выиграл {(turn ? "компьютер" : "игрок")}");
+                    MessageBox.Show($"Game Over! Выиграл {(!turn ? "компьютер" : "игрок")}");
                 }
                 else
                 {
@@ -245,13 +245,11 @@ namespace game_course
 
                 colorful_cells(bestCombination.Item1, bestCombination.Item2, bestCombination.Item3, bestCombination.Item4, 1);
                 poisen_cells(bestCombination.Item1, bestCombination.Item2, bestCombination.Item3, bestCombination.Item4);
-                turn = false;
             }
             else
             {
                 // Если не удалось найти доступные комбинации, закрашиваем всю область, кроме отравленной дольки
                 colorful_cells(minX, minY, maxX, maxY, 1);
-                turn = false;
             }
 
         }
@@ -301,6 +299,7 @@ namespace game_course
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[1] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
                             dataGridView1[x, y].Style.BackColor = pallete[step];
+                            turn = true;
                             panel1.BackColor = pallete[1];
                         }
                     }
@@ -309,6 +308,7 @@ namespace game_course
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[0] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
                             dataGridView1[x, y].Style.BackColor = pallete[step];
+                            turn = false;
                             panel1.BackColor = pallete[0];
                         }
                     }
@@ -376,7 +376,7 @@ namespace game_course
             int y = e.RowIndex;
 
             // Добавляем координаты только в случае, если выбрана пустая клетка
-            if (dataGridView1[x, y].Style.BackColor == Color.Empty)
+            if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor == Color.Red)
             {
                 xCol.Add(x);
                 yRow.Add(y);
@@ -388,9 +388,6 @@ namespace game_course
                     int minX, maxX, minY, maxY;
                     if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
                     {
-                        // Если не удалось найти крайние пустые клетки, отменяем выбор и очищаем списки координат
-                        dataGridView1[xCol[0], yRow[0]].Style.BackColor = Color.Empty;
-                        dataGridView1[xCol[1], yRow[1]].Style.BackColor = Color.Empty;
                         xCol.Clear();
                         yRow.Clear();
                         return;
@@ -398,7 +395,8 @@ namespace game_course
                     else
                     {
                         bool isValidSelection = ((xCol.Min() == minX || xCol.Max() == maxX) && (yRow.Min() == minY && yRow.Max() == maxY)) ||
-                                                ((yRow.Min() == minY || yRow.Max() == maxY) && (xCol.Min() == minX && xCol.Max() == maxX));
+                        ((yRow.Min() == minY || yRow.Max() == maxY) && (xCol.Min() == minX && xCol.Max() == maxX)) ||
+                        ((maxX - minX <= 2) && (maxY - minY <= 2));
 
                         if (!isValidSelection)
                         {
@@ -418,8 +416,8 @@ namespace game_course
                             if (!gameover)
                             {
                                 machine_game();
+                                turn = false;
                             }
-                            turn = true;
                             total_paintCells();
                             course_game();
 
