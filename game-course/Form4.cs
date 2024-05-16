@@ -28,6 +28,7 @@ namespace game_course
         public Form4(int number, Color color_1, Color color_2)
         {
             InitializeComponent();
+
             countPlayers = number;
             pallete[0] = color_1;
             pallete[1] = color_2;
@@ -42,6 +43,8 @@ namespace game_course
             {
                 dataGridView1.Columns[i].Width = 43;  // Ширина столбцов
             }
+            random_cells();
+
         }
         void course_game()
         {
@@ -254,10 +257,6 @@ namespace game_course
                 return;
             }
 
-            // Проверяем положение отравленной дольки относительно выбранной области
-            bool poisonInside = (i0 >= minX && i0 <= maxX && j0 >= minY && j0 <= maxY);
-            bool poisonOnEdge = (i0 == minX || i0 == maxX || j0 == minY || j0 == maxY);
-
             // Создаем список доступных комбинаций клеток
             List<Tuple<int, int, int, int>> availableCombinations = FindAvailableCombinations(minX, maxX, minY, maxY);
 
@@ -323,10 +322,10 @@ namespace game_course
             maxX = maxY = int.MinValue;
 
             // Поиск крайних не закрашенных строк
-            for (int j = 0; j < dataGridView1.RowCount; j++)
+            for (int j = 0; j < rows; j++)
             {
                 bool isEmpty = false;
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                for (int i = 0; i < cols; i++)
                 {
                     if (dataGridView1[i, j].Style.BackColor == Color.Empty)
                     {
@@ -343,10 +342,10 @@ namespace game_course
             }
 
             // Поиск крайних не закрашенных столбцов
-            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+            for (int i = 0; i < cols; i++)
             {
                 bool isEmpty = false;
-                for (int j = 0; j < dataGridView1.RowCount; j++)
+                for (int j = 0; j < rows; j++)
                 {
                     if (dataGridView1[i, j].Style.BackColor == Color.Empty)
                     {
@@ -367,11 +366,7 @@ namespace game_course
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (c == 1)
-            {
-                random_cells();
-                c = 0;
-            }
+
             groupBox1.Hide();
             if (gameover)
             {
@@ -381,13 +376,18 @@ namespace game_course
             int x = e.ColumnIndex;
             int y = e.RowIndex;
 
-            // Добавляем координаты выбранной клетки в список
             xCol.Add(x);
             yRow.Add(y);
 
-            // Проверяем, что выбраны хотя бы две клетки
             if (xCol.Count == 2 && yRow.Count == 2)
             {
+                if (xCol[0] == xCol[1] && yRow[0] == yRow[1])
+                {
+                    MessageBox.Show("Выберите как минимум две разные ячейки!");
+                    xCol.Clear();
+                    yRow.Clear();
+                    return;
+                }
                 int minX, maxX, minY, maxY;
                 if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
                 {
@@ -448,10 +448,11 @@ namespace game_course
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            panel1.BackColor = Color.Empty;
+            panel1.BackColor = Color.Empty; 
             gameover = false;
             groupBox1.Show();
             clean_cells();
+            random_cells();
         }
 
         private void button3_Click(object sender, EventArgs e)
