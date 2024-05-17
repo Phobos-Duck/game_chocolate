@@ -111,19 +111,28 @@ namespace game_course
 
             bool hasPoisonedCell = false;
 
-            // Проверяем, содержит ли закрашенная область отравленную дольку
-            if ((i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) ||
-    (i0 == x1 && j0 == y1) || (i0 == x2 && j0 == y2))
+            if (countPlayers == 1)
             {
-                hasPoisonedCell = true;
+                if (((i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) ||
+        (i0 == x1 && j0 == y1) || (i0 == x2 && j0 == y2)))
+                {
+                    hasPoisonedCell = true;
+                }
             }
-
+            else
+            {
+                if (((i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) ||
+        (i0 == x1 && j0 == y1) || (i0 == x2 && j0 == y2)) || (xCol[0] == xCol[1] && Math.Abs(yRow[0] - yRow[1]) <= 1) ||
+        (yRow[0] == yRow[1] && Math.Abs(xCol[0] - xCol[1]) <= 1))
+                    hasPoisonedCell = true;
+            }
             if (hasPoisonedCell)
             {
+
                 gameover = true;
                 if (countPlayers == 1)
                 {
-                    MessageBox.Show($"Game Over! Выиграл {(panel1.BackColor == pallete[1] ? "компьютер" : "игрок")}");
+                    MessageBox.Show($"Game Over! Выиграл {(turn ? "компьютер" : "игрок")}");
                 }
                 else
                 {
