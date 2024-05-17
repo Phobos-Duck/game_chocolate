@@ -20,7 +20,7 @@ namespace game_course
         List<int> yRow = new List<int>();
         Color[] pallete = new Color[2];
         int rows = 12, cols = 6, j0 = -1, i0 = -1, play = 1, total_1 = 0, total_2 = 0;
-        bool gameover = false;
+        bool gameover = false, turn = false;
 
         int countPlayers;
 
@@ -112,9 +112,7 @@ namespace game_course
             bool hasPoisonedCell = false;
 
             // Проверяем, содержит ли закрашенная область отравленную дольку
-            if ((xCol[0] == xCol[1] && Math.Abs(yRow[0] - yRow[1]) <= 1) ||
-    (yRow[0] == yRow[1] && Math.Abs(xCol[0] - xCol[1]) <= 1) ||
-    (i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) ||
+            if ((i0 >= startX && i0 <= endX && j0 >= startY && j0 <= endY) ||
     (i0 == x1 && j0 == y1) || (i0 == x2 && j0 == y2))
             {
                 hasPoisonedCell = true;
@@ -134,7 +132,9 @@ namespace game_course
                         MessageBox.Show($"Game Over! Выиграл {(play == 1 ? "первый" : "второй")} игрок");
                     }
                 }
+
             }
+
         }
         private void random_cells()
         {
@@ -149,14 +149,9 @@ namespace game_course
         {
             List<Tuple<int, int, int, int>> availableCombinations = new List<Tuple<int, int, int, int>>();
 
-            // Проверяем, что текущая область содержит несколько строк
-            if (maxY - minY > 0)
-            {
-                availableCombinations.Add(Tuple.Create(minX, minY, maxX, maxY));
-            }
+            // Проверяем, что текущая область содержит несколько строк или столбцов
 
-            // Проверяем, что текущая область содержит несколько столбцов
-            if (maxX - minX > 0)
+            if ((maxX - minX > 0) || (maxY - minY > 0))
             {
                 availableCombinations.Add(Tuple.Create(minX, minY, maxX, maxY));
             }
@@ -218,7 +213,11 @@ namespace game_course
         {
             int minX, maxX, minY, maxY;
 
-            // Получаем координаты крайних пустых клеток
+            if (gameover)
+            {
+                return;
+            }
+
             if (!TryGetNextEmptyEdge(out minX, out maxX, out minY, out maxY))
             {
                 return;
@@ -249,9 +248,28 @@ namespace game_course
             }
             else
             {
-                // Если не удалось найти доступные комбинации, закрашиваем всю область, кроме отравленной дольки
-                colorful_cells(minX, minY, maxX, maxY, 1);
+                // Если не удалось найти доступные комбинации, закрашиваем первую подходящую область
+                if (minX == maxX)
+                {
+                    // Закрашиваем столбец
+                    colorful_cells(minX, minY, minX, maxY, 1);
+                    poisen_cells(minX, minY, minX, maxY);
+                }
+                else if (minY == maxY)
+                {
+                    // Закрашиваем строку
+                    colorful_cells(minX, minY, maxX, minY, 1);
+                    poisen_cells(minX, minY, maxX, minY);
+                }
+                else
+                {
+                    // Закрашиваем минимальную область
+                    colorful_cells(minX, minY, minX + 1, minY + 1, 1);
+                    poisen_cells(minX, minY, minX + 1, minY + 1);
+                }
             }
+
+            turn = false;
 
         }
 
@@ -300,6 +318,7 @@ namespace game_course
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[1] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
                             panel1.BackColor = pallete[1];
+                            turn = true;
                             dataGridView1[x, y].Style.BackColor = pallete[step];
                             
                         }
@@ -308,7 +327,7 @@ namespace game_course
                     {
                         if (dataGridView1[x, y].Style.BackColor == Color.Empty || dataGridView1[x, y].Style.BackColor != pallete[0] || dataGridView1[x, y].Style.BackColor == Color.Red)
                         {
-                            
+                            panel1.BackColor = pallete[0];
                             dataGridView1[x, y].Style.BackColor = pallete[step];
                             
                         }
@@ -409,6 +428,8 @@ namespace game_course
                         {
                             colorful_cells(xCol[0], yRow[0], xCol[1], yRow[1], 0);
                             poisen_cells(xCol[0], yRow[0], xCol[1], yRow[1]);
+
+
                             if (!gameover)
                             {
                                 machine_game();
@@ -416,7 +437,6 @@ namespace game_course
                             }
                             total_paintCells();
                             course_game();
-
                         }
                         else
                         {
